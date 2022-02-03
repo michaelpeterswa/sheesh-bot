@@ -1,2 +1,2 @@
-# go-start
-A template repository for Go projects
+# sheesh-bot
+a discord bot to respond to the word sheesh
