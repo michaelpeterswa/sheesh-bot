@@ -17,6 +17,7 @@ import (
 
 type OnMessage struct {
 	SheeshRegex *regexp.Regexp
+	Logger      *zap.Logger
 }
 
 func main() {
@@ -35,6 +36,7 @@ func main() {
 
 	on := OnMessage{
 		SheeshRegex: sheeshRegex,
+		Logger:      logger,
 	}
 
 	// Create a new Discord session using the provided bot token.
@@ -62,7 +64,7 @@ func main() {
 	// Wait here until CTRL-C or other term signal is received.
 	logger.Info("bot is now running.  press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM)
 	<-sc
 
 	// Cleanly close down the Discord session.
@@ -82,7 +84,10 @@ func (on *OnMessage) messageCreate(s *discordgo.Session, m *discordgo.MessageCre
 	normalizedContent := strings.ToLower(m.Content)
 
 	if on.SheeshRegex.MatchString(normalizedContent) {
-		s.ChannelMessageSend(m.ChannelID, "sheesh")
+		_, err := s.ChannelMessageSend(m.ChannelID, "sheesh")
+		if err != nil {
+			on.Logger.Error("error sending message", zap.String("channel_id", m.ChannelID), zap.Error(err))
+		}
 	}
 }
 
